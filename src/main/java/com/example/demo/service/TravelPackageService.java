@@ -1,7 +1,10 @@
 package com.example.demo.service;
 
+import com.example.demo.dto.PriceResponse;
+import com.example.demo.model.Activity;
 import com.example.demo.model.City;
 import com.example.demo.model.TravelPackage;
+import com.example.demo.repository.ActivityRepository;
 import com.example.demo.repository.CityRepository;
 import com.example.demo.repository.TravelPackageRepository;
 import jakarta.transaction.Transactional;
@@ -9,6 +12,7 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 
 import java.time.LocalDate;
+import java.util.List;
 import java.util.UUID;
 
 @Service
@@ -17,6 +21,7 @@ public class TravelPackageService {
 
     private final TravelPackageRepository travelPackageRepository;
     private final CityRepository cityRepository;
+    private final ActivityRepository activityRepository; // ✅ ADD THIS
 
     @Transactional
     public TravelPackage create(
@@ -36,7 +41,7 @@ public class TravelPackageService {
 
         TravelPackage pkg = TravelPackage.builder()
                 .fromCity(fromCity)
-                .destinationCity(destinationCity)
+                .toCity(destinationCity)
                 .departureDate(departureDate)
                 .totalRooms(totalRooms)
                 .guestsPerRoom(guestsPerRoom)
@@ -44,5 +49,28 @@ public class TravelPackageService {
                 .build();
 
         return travelPackageRepository.save(pkg);
+    }
+
+    @Transactional
+    public PriceResponse calculatePrice(UUID packageId, List<UUID> activityIds) {
+
+        TravelPackage pkg = travelPackageRepository.findById(packageId)
+                .orElseThrow(() -> new RuntimeException("Package not found"));
+
+        double basePrice = pkg.getPrice();
+        double activitiesTotal = 0.0;
+
+        if (activityIds != null && !activityIds.isEmpty()) {
+
+            List<Activity> activities = activityRepository.findAllById(activityIds);
+
+            activitiesTotal = activities.stream()
+                    .mapToDouble(Activity::getPrice)
+                    .sum();
+        }
+
+        double finalPrice = basePrice + activitiesTotal;
+
+        return new PriceResponse(basePrice, activitiesTotal, finalPrice);
     }
 }

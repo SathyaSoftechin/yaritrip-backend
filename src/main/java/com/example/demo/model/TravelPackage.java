@@ -2,19 +2,22 @@ package com.example.demo.model;
 
 import jakarta.persistence.*;
 import lombok.*;
+import com.example.demo.model.Activity;
+import com.example.demo.model.ItineraryDay;
+
+import com.example.demo.model.Attraction;
+import com.example.demo.model.City;
 
 import java.time.LocalDate;
+import java.util.List;
 import java.util.UUID;
 
 @Entity
-@Table(
-    indexes = {
-        @Index(name = "idx_from_city", columnList = "from_city_id"),
-        @Index(name = "idx_destination_city", columnList = "destination_city_id"),
-        @Index(name = "idx_departure_date", columnList = "departureDate")
-    }
-)
-
+@Table(indexes = {
+                @Index(name = "idx_from_city", columnList = "from_city_id"),
+                @Index(name = "idx_to_city", columnList = "to_city_id"),
+                @Index(name = "idx_departure_date", columnList = "departureDate")
+})
 @Getter
 @Setter
 @NoArgsConstructor
@@ -22,27 +25,61 @@ import java.util.UUID;
 @Builder
 public class TravelPackage {
 
-    @Id
-    @GeneratedValue(strategy = GenerationType.UUID)
-    private UUID id;
+        @Id
+        @GeneratedValue(strategy = GenerationType.UUID)
+        private UUID id;
 
-    @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "from_city_id", nullable = false)
-    private City fromCity;
+        // -----------------------------
+        // ROUTE
+        // -----------------------------
+        @ManyToOne(fetch = FetchType.EAGER)
+        @JoinColumn(name = "from_city_id", nullable = false)
+        private City fromCity;
 
-    @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "destination_city_id", nullable = false)
-    private City destinationCity;
+        @ManyToOne(fetch = FetchType.EAGER)
+        @JoinColumn(name = "to_city_id", nullable = false)
+        private City toCity;
 
-    @Column(nullable = false)
-    private LocalDate departureDate;
+        @OneToMany(mappedBy = "travelPackage", cascade = CascadeType.ALL)
+        private List<PackageImage> images;
 
-    @Column(nullable = false)
-    private int totalRooms;
+        @OneToMany(mappedBy = "travelPackage", cascade = CascadeType.ALL)
+        private List<ItineraryDay> itineraryDays;
 
-    @Column(nullable = false)
-    private int guestsPerRoom;
+        @OneToMany(mappedBy = "travelPackage", cascade = CascadeType.ALL)
+        private List<Activity> activities;
+        // -----------------------------
+        // TRAVEL INFO
+        // -----------------------------
+        @Column(nullable = false)
+        private LocalDate departureDate;
 
-    @Column(nullable = false)
-    private Double price;
+        @Column(nullable = false)
+        private int totalRooms;
+
+        @Column(nullable = false)
+        private int guestsPerRoom;
+
+        @Column(nullable = false)
+        private Double price;
+
+        @Column(nullable = false)
+        private Integer totalDays;
+
+        // -----------------------------
+        // DISPLAY INFO
+        // -----------------------------
+        @Column(length = 3000)
+        private String overview;
+
+        private Double rating;
+
+        private String bannerImageUrl;
+
+        // -----------------------------
+        // RELATIONS
+        // -----------------------------
+        @ManyToMany(fetch = FetchType.EAGER)
+        @JoinTable(name = "package_attractions", joinColumns = @JoinColumn(name = "package_id"), inverseJoinColumns = @JoinColumn(name = "attraction_id"))
+        private List<Attraction> attractions;
 }

@@ -6,28 +6,26 @@ import lombok.*;
 import java.util.UUID;
 
 @Entity
-@Table(
-    indexes = {
-        @Index(name = "idx_city_code", columnList = "code")
-    }
-)
 @Getter
 @Setter
 @NoArgsConstructor
 @AllArgsConstructor
 @Builder
-public class City {
+public class Activity {
 
     @Id
     @GeneratedValue(strategy = GenerationType.UUID)
     private UUID id;
 
-    @Column(nullable = false)
     private String name;
 
-    @Column(nullable = false, unique = true)
-    private String code;
+    private Double price;
 
-    @Column(nullable = false)
-    private String country;
+    private Boolean optional; // true = add-on
+
+    @ManyToOne(fetch = FetchType.LAZY)
+    private TravelPackage travelPackage;
+
+    @ManyToOne(fetch = FetchType.LAZY)
+    private ItineraryDay itineraryDay; // nullable
 }

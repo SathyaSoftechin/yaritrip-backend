@@ -35,18 +35,23 @@ public class SearchController {
     // 3️⃣ Search packages
     @GetMapping("/packages/search")
     public List<TravelPackage> searchPackages(
-            @RequestParam UUID fromCity,
-            @RequestParam UUID destination,
+            @RequestParam String fromCode,
+            @RequestParam String toCode,
             @RequestParam @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate date,
             @RequestParam int rooms,
-            @RequestParam int guests
-    ) {
+            @RequestParam int guests) {
+
+        City fromCity = cityRepository.findByCode(fromCode)
+                .orElseThrow(() -> new RuntimeException("From city not found"));
+
+        City toCity = cityRepository.findByCode(toCode)
+                .orElseThrow(() -> new RuntimeException("Destination city not found"));
+
         return travelPackageRepository.searchPackages(
-                fromCity,
-                destination,
+                fromCity.getId(),
+                toCity.getId(),
                 date,
                 rooms,
-                guests
-        );
+                guests);
     }
 }

@@ -9,5 +9,6 @@ import java.util.UUID;
 public interface AttractionRepository extends JpaRepository<Attraction, UUID> {
 
     List<Attraction> findByIsPopularTrueAndLocationIgnoreCaseOrderByRatingDesc(String location);
+    List<Attraction> findByLocationIgnoreCase(String location);
 
 }
