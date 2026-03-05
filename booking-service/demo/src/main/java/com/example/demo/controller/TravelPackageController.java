@@ -53,4 +53,5 @@ public class TravelPackageController {
                         @RequestBody PriceRequest request) {
                 return service.calculatePrice(id, request.getActivityIds());
         }
+
 }

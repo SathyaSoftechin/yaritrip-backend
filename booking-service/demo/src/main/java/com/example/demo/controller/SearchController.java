@@ -4,6 +4,7 @@ import com.example.demo.model.City;
 import com.example.demo.model.TravelPackage;
 import com.example.demo.repository.CityRepository;
 import com.example.demo.repository.TravelPackageRepository;
+import com.example.demo.dto.PackageSearchResponse;
 import lombok.RequiredArgsConstructor;
 import org.springframework.format.annotation.DateTimeFormat;
 import org.springframework.web.bind.annotation.*;
@@ -34,7 +35,7 @@ public class SearchController {
 
     // 3️⃣ Search packages
     @GetMapping("/packages/search")
-    public List<TravelPackage> searchPackages(
+    public List<PackageSearchResponse> searchPackages(
             @RequestParam String fromCode,
             @RequestParam String toCode,
             @RequestParam @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate date,
@@ -47,11 +48,23 @@ public class SearchController {
         City toCity = cityRepository.findByCode(toCode)
                 .orElseThrow(() -> new RuntimeException("Destination city not found"));
 
-        return travelPackageRepository.searchPackages(
+        List<TravelPackage> packages = travelPackageRepository.searchPackages(
                 fromCity.getId(),
                 toCity.getId(),
                 date,
                 rooms,
                 guests);
+
+        return packages.stream()
+                .map(pkg -> PackageSearchResponse.builder()
+                        .id(pkg.getId())
+                        .fromCity(pkg.getFromCity().getName())
+                        .toCity(pkg.getToCity().getName())
+                        .price(pkg.getPrice())
+                        .rating(pkg.getRating())
+                        .bannerImage(pkg.getBannerImageUrl())
+                        .nights(pkg.getTotalDays())
+                        .build())
+                .toList();
     }
 }
