@@ -6,6 +6,7 @@ import com.example.demo.model.City;
 
 import org.springframework.data.jpa.repository.*;
 import org.springframework.data.repository.query.Param;
+import java.util.Optional;
 
 import java.time.LocalDate;
 import java.util.List;
@@ -34,4 +35,11 @@ public interface TravelPackageRepository extends JpaRepository<TravelPackage, UU
             @Param("date") LocalDate date,
             @Param("rooms") int rooms,
             @Param("guests") int guests);
+
+    @Query("""
+                SELECT tp FROM TravelPackage tp
+                LEFT JOIN FETCH tp.images
+                WHERE tp.id = :id
+            """)
+    Optional<TravelPackage> findByIdWithImages(@Param("id") UUID id);
 }

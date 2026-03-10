@@ -5,6 +5,8 @@ import lombok.*;
 
 import java.util.UUID;
 
+import com.fasterxml.jackson.annotation.JsonBackReference;
+
 @Entity
 @Getter
 @Setter
@@ -19,7 +21,8 @@ public class PackageImage {
 
     private String imageUrl;
 
-    @ManyToOne(fetch = FetchType.LAZY)
+    @ManyToOne
     @JoinColumn(name = "package_id")
+    @JsonBackReference
     private TravelPackage travelPackage;
 }

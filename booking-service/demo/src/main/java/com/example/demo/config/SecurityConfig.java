@@ -56,18 +56,30 @@ public class SecurityConfig {
             session.sessionCreationPolicy(SessionCreationPolicy.STATELESS)
         )
         .authorizeHttpRequests(auth -> auth
-            .requestMatchers(HttpMethod.OPTIONS, "/**").permitAll() 
-            .requestMatchers("/favicon.ico").permitAll()
-            .requestMatchers("/api/auth/register").permitAll()
-            .requestMatchers("/api/auth/login").permitAll()
-            .requestMatchers("/api/attractions/popular").permitAll()
-            .requestMatchers("/api/cities").permitAll()
-            .requestMatchers("/api/destinations").permitAll()
-            .requestMatchers("/api/stays").permitAll()
-            .requestMatchers("/api/packages/search").permitAll()
-            .requestMatchers("/oauth2/**").permitAll()
-            .requestMatchers("/api/users/me").authenticated()
-            .anyRequest().permitAll()
+                .requestMatchers(HttpMethod.OPTIONS, "/**").permitAll()
+                .requestMatchers("/favicon.ico").permitAll()
+
+                // 🔹 STATIC IMAGES
+                .requestMatchers("/images/**").permitAll()
+
+                // 🔹 AUTH
+                .requestMatchers("/api/auth/register").permitAll()
+                .requestMatchers("/api/auth/login").permitAll()
+
+                // 🔹 PUBLIC APIs
+                .requestMatchers("/api/attractions/popular").permitAll()
+                .requestMatchers("/api/cities").permitAll()
+                .requestMatchers("/api/destinations").permitAll()
+                .requestMatchers("/api/stays").permitAll()
+                .requestMatchers("/api/packages/search").permitAll()
+
+                // 🔹 OAUTH
+                .requestMatchers("/oauth2/**").permitAll()
+
+                // 🔹 AUTHENTICATED
+                .requestMatchers("/api/users/me").authenticated()
+
+                .anyRequest().permitAll()
         )
         .exceptionHandling(exception ->
             exception.authenticationEntryPoint((request, response, ex) -> {

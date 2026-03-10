@@ -12,6 +12,8 @@ import java.time.LocalDate;
 import java.util.List;
 import java.util.UUID;
 
+import com.fasterxml.jackson.annotation.JsonManagedReference;
+
 @Entity
 @Table(indexes = {
                 @Index(name = "idx_from_city", columnList = "from_city_id"),
@@ -40,7 +42,7 @@ public class TravelPackage {
         @JoinColumn(name = "to_city_id", nullable = false)
         private City toCity;
 
-        @OneToMany(mappedBy = "travelPackage", cascade = CascadeType.ALL)
+        @OneToMany(mappedBy = "travelPackage", cascade = CascadeType.ALL)@JsonManagedReference
         private List<PackageImage> images;
 
         @OneToMany(mappedBy = "travelPackage", cascade = CascadeType.ALL)
