@@ -113,7 +113,7 @@ public CorsConfigurationSource corsConfigurationSource() {
 
     configuration.setAllowedOrigins(List.of(
             "http://10.0.2.2:8081",
-            "http://192.168.1.4:5173",
+            "http://192.168.1.9:5173",
             "http://localhost:5173"
     ));
 

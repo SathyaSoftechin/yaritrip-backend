@@ -25,23 +25,29 @@ public class TravelPackageController {
         private final TravelPackageService service;
         private final PackageImageService imageService;
 
+        @GetMapping
+        public List<TravelPackage> getAllPackages() {
+                return repository.findAll();
+        }
+
         @GetMapping("/{id}")
         public ResponseEntity<PackageResponse> getById(@PathVariable UUID id) {
 
                 TravelPackage pkg = repository.findByIdWithImages(id)
                                 .orElseThrow(() -> new RuntimeException("Package not found"));
+                String destination = pkg.getToCity() != null
+                                ? pkg.getToCity().getName()
+                                : "default";
 
-                                List<String> images = imageService.getImagesForDestination(
-                        pkg.getToCity().getName()
-                );
+                List<String> images = imageService.getImagesForDestination(destination);
                 PackageResponse response = PackageResponse.builder()
                                 .id(pkg.getId())
                                 .title(pkg.getFromCity().getName() + " to " + pkg.getToCity().getName())
-                                .location(pkg.getToCity().getName())
+                                .location(pkg.getToCity() != null ? pkg.getToCity().getName() : "Unknown")
                                 .nights(pkg.getTotalDays())
                                 .price(pkg.getPrice())
                                 .rating(pkg.getRating() != null ? pkg.getRating() : 4.5)
-                                .image(pkg.getBannerImageUrl())
+                                .image("http://localhost:8082" + pkg.getBannerImageUrl())
                                 .images(images.isEmpty()
                                                 ? List.of("/images/packages/default.jpg")
                                                 : images)

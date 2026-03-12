@@ -4,8 +4,12 @@ import com.example.demo.model.City;
 import com.example.demo.model.TravelPackage;
 import com.example.demo.repository.CityRepository;
 import com.example.demo.repository.TravelPackageRepository;
-import com.example.demo.dto.PackageSearchResponse;
+import com.example.demo.dto.PackageResponse;
+import com.example.demo.service.PackageImageService;
+import com.example.demo.service.TravelPackageService;
+
 import lombok.RequiredArgsConstructor;
+
 import org.springframework.format.annotation.DateTimeFormat;
 import org.springframework.web.bind.annotation.*;
 
@@ -14,12 +18,15 @@ import java.util.List;
 import java.util.UUID;
 
 @RestController
-@RequestMapping("/api")
+@RequestMapping("/api/packages")
 @RequiredArgsConstructor
+@CrossOrigin(origins = "*")
 public class SearchController {
 
     private final CityRepository cityRepository;
     private final TravelPackageRepository travelPackageRepository;
+    private final TravelPackageService service;
+    private final PackageImageService imageService;
 
     // 1️⃣ Get all cities (From City dropdown)
     @GetMapping("/cities")
@@ -34,37 +41,33 @@ public class SearchController {
     }
 
     // 3️⃣ Search packages
-    @GetMapping("/packages/search")
-    public List<PackageSearchResponse> searchPackages(
+    @GetMapping("/search")
+    public List<PackageResponse> searchPackages(
             @RequestParam String fromCode,
             @RequestParam String toCode,
             @RequestParam @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate date,
             @RequestParam int rooms,
             @RequestParam int guests) {
 
-        City fromCity = cityRepository.findByCode(fromCode)
-                .orElseThrow(() -> new RuntimeException("From city not found"));
+        List<TravelPackage> packages =
+                service.searchPackages(fromCode, toCode, date.toString(), rooms, guests);
 
-        City toCity = cityRepository.findByCode(toCode)
-                .orElseThrow(() -> new RuntimeException("Destination city not found"));
+        return packages.stream().map(pkg -> {
 
-        List<TravelPackage> packages = travelPackageRepository.searchPackages(
-                fromCity.getId(),
-                toCity.getId(),
-                date,
-                rooms,
-                guests);
+            List<String> images =
+                    imageService.getImagesForDestination(pkg.getToCity().getName());
 
-        return packages.stream()
-                .map(pkg -> PackageSearchResponse.builder()
-                        .id(pkg.getId())
-                        .fromCity(pkg.getFromCity().getName())
-                        .toCity(pkg.getToCity().getName())
-                        .price(pkg.getPrice())
-                        .rating(pkg.getRating())
-                        .bannerImage(pkg.getBannerImageUrl())
-                        .nights(pkg.getTotalDays())
-                        .build())
-                .toList();
+            return PackageResponse.builder()
+                    .id(pkg.getId())
+                    .title(pkg.getFromCity().getName() + " to " + pkg.getToCity().getName())
+                    .location(pkg.getToCity().getName())
+                    .nights(pkg.getTotalDays())
+                    .price(pkg.getPrice())
+                    .rating(pkg.getRating() != null ? pkg.getRating() : 4.5)
+                    .image("http://localhost:8082" + images.get(0))
+                    .images(images)
+                    .build();
+
+        }).toList();
     }
 }
