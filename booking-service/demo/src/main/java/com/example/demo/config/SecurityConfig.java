@@ -68,6 +68,7 @@ public class SecurityConfig {
 
                 // 🔹 PUBLIC APIs
                 .requestMatchers("/api/attractions/popular").permitAll()
+                .requestMatchers("/api/attraction-packages/*").permitAll()
                 .requestMatchers("/api/cities").permitAll()
                 .requestMatchers("/api/destinations").permitAll()
                 .requestMatchers("/api/stays").permitAll()
@@ -113,7 +114,7 @@ public CorsConfigurationSource corsConfigurationSource() {
 
     configuration.setAllowedOrigins(List.of(
             "http://10.0.2.2:8081",
-            "http://192.168.1.9:5173",
+            "http://192.168.1.1:5173",
             "http://localhost:5173"
     ));
 

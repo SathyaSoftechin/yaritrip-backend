@@ -2,9 +2,11 @@ package com.example.demo.service;
 
 import com.example.demo.dto.AttractionDetailResponse;
 import com.example.demo.dto.AttractionUpdateRequest;
-import com.example.demo.dto.PopularAttractionResponse;
+import com.example.demo.dto.AttractionResponse;
 import com.example.demo.model.Attraction;
 import com.example.demo.repository.AttractionRepository;
+import com.example.demo.repository.AttractionPackageRepository;
+
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 
@@ -16,8 +18,13 @@ import java.util.UUID;
 public class AttractionService {
 
     private final AttractionRepository attractionRepository;
+    private final AttractionPackageRepository attractionPackageRepository;
+    public Attraction create(Attraction attraction) {
+    return attractionRepository.save(attraction);
+}
 
-    public List<PopularAttractionResponse> getPopularByCity(String city) {
+    public List<AttractionResponse> getPopularByCity(String city) {
+
         return attractionRepository
                 .findByIsPopularTrueAndLocationIgnoreCaseOrderByRatingDesc(city)
                 .stream()
@@ -26,12 +33,15 @@ public class AttractionService {
     }
 
     public AttractionDetailResponse getAttractionById(UUID id) {
+
         Attraction attraction = attractionRepository.findById(id)
                 .orElseThrow(() -> new RuntimeException("Attraction not found"));
+
         return mapToDetailResponse(attraction);
     }
 
     public AttractionDetailResponse updateAttraction(UUID id, AttractionUpdateRequest request) {
+
         Attraction attraction = attractionRepository.findById(id)
                 .orElseThrow(() -> new RuntimeException("Attraction not found"));
 
@@ -42,31 +52,39 @@ public class AttractionService {
         attraction.setRating(request.rating());
         attraction.setIsPopular(request.isPopular());
 
-        return mapToDetailResponse(attractionRepository.save(attraction));
+        attractionRepository.save(attraction);
+
+        return mapToDetailResponse(attraction);
     }
 
-    // ── private helpers ──────────────────────────────────────────
+    // ---------- MAPPERS ----------
 
-    private PopularAttractionResponse mapToPopularResponse(Attraction a) {
-        return new PopularAttractionResponse(
+    private AttractionResponse mapToPopularResponse(Attraction a) {
+
+        UUID packageId = attractionPackageRepository
+                .findPackageIdByAttraction(a.getId());
+
+        return new AttractionResponse(
                 a.getId(),
-                a.getName(),        // → title  (matches frontend item.title)
-                a.getLocation(),    // → city   (used for tab filtering)
-                a.getDescription(), // → subtitle
+                packageId,
+                a.getName(),
+                a.getLocation(),
+                a.getDescription(),
                 a.getImageUrl(),
-                a.getRating()  != null ? a.getRating()  : 0.0,
+                a.getRating() != null ? a.getRating() : 0.0,
                 a.getReviews() != null ? a.getReviews() : 0
         );
     }
 
     private AttractionDetailResponse mapToDetailResponse(Attraction a) {
+
         return new AttractionDetailResponse(
                 a.getId(),
-                a.getName(),        // → title
-                a.getLocation(),    // → city
+                a.getName(),
+                a.getLocation(),
                 a.getDescription(),
                 a.getImageUrl(),
-                a.getRating()  != null ? a.getRating()  : 0.0,
+                a.getRating() != null ? a.getRating() : 0.0,
                 a.getReviews() != null ? a.getReviews() : 0
         );
     }

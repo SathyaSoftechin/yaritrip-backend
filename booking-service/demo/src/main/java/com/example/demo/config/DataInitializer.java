@@ -1,16 +1,18 @@
 package com.example.demo.config;
 
 import com.example.demo.model.Attraction;
+import com.example.demo.model.AttractionPackage;
 import com.example.demo.model.Stay;
 import com.example.demo.model.TravelPackage;
+import com.example.demo.model.City;
+
 import com.example.demo.repository.AttractionRepository;
+import com.example.demo.repository.AttractionPackageRepository;
 import com.example.demo.repository.StayRepository;
+import com.example.demo.repository.TravelPackageRepository;
+import com.example.demo.repository.CityRepository;
 
 import lombok.RequiredArgsConstructor;
-import com.example.demo.repository.TravelPackageRepository;
-
-import com.example.demo.model.City;
-import com.example.demo.repository.CityRepository;
 
 import java.time.LocalDate;
 import java.util.List;
@@ -26,21 +28,24 @@ public class DataInitializer implements CommandLineRunner {
         private final StayRepository stayRepository;
         private final CityRepository cityRepository;
         private final TravelPackageRepository travelPackageRepository;
+        private final AttractionPackageRepository attractionPackageRepository;
 
         @Override
         public void run(String... args) {
 
                 // Clear old data
                 travelPackageRepository.deleteAll();
+                attractionPackageRepository.deleteAll();
                 attractionRepository.deleteAll();
                 stayRepository.deleteAll();
                 cityRepository.deleteAll();
-                
+
                 // Seed fresh data
                 seedCities();
                 seedAttractions();
                 seedStays();
                 seedPackages();
+                seedAttractionPackages();
 
                 System.out.println("✅ All data seeded successfully");
         }
@@ -193,105 +198,35 @@ public class DataInitializer implements CommandLineRunner {
                 System.out.println("✅ Stays seeded");
         }
 
+        /*
+         * ==========================
+         * SEED CITIES
+         * ==========================
+         */
         private void seedCities() {
 
-                // if (cityRepository.count() > 0)
-                // return;
-
-                cityRepository.save(
-                                City.builder()
-                                                .name("Hyderabad")
-                                                .code("HYD")
-                                                .country("India")
-                                                .build());
-
-                cityRepository.save(
-                                City.builder()
-                                                .name("Delhi")
-                                                .code("DEL")
-                                                .country("India")
-                                                .build());
-
-                cityRepository.save(
-                                City.builder()
-                                                .name("Kerala")
-                                                .code("KD")
-                                                .country("India")
-                                                .build());
-
-                cityRepository.save(
-                                City.builder()
-                                                .name("Kashmir")
-                                                .code("SXR")
-                                                .country("India")
-                                                .build());
-
-                cityRepository.save(
-                                City.builder()
-                                                .name("Andaman")
-                                                .code("IXZ")
-                                                .country("India")
-                                                .build());
-
-                cityRepository.save(
-                                City.builder()
-                                                .name("Mumbai")
-                                                .code("BOM")
-                                                .country("India")
-                                                .build());
-
-                cityRepository.save(
-                                City.builder()
-                                                .name("Dubai")
-                                                .code("DXB")
-                                                .country("UAE")
-                                                .build());
-
-                cityRepository.save(
-                                City.builder()
-                                                .name("Kuala Lumpur")
-                                                .code("KUL")
-                                                .country("Malaysia")
-                                                .build());
-
-                cityRepository.save(
-                                City.builder()
-                                                .name("Vietnam")
-                                                .code("VN")
-                                                .country("Vietnam")
-                                                .build());
-
-                cityRepository.save(
-                                City.builder()
-                                                .name("Singapore")
-                                                .code("SIN")
-                                                .country("Singapore")
-                                                .build());
-
-                cityRepository.save(
-                                City.builder()
-                                                .name("Bali")
-                                                .code("DPS")
-                                                .country("Indonesia")
-                                                .build());
-
-                cityRepository.save(
-                                City.builder()
-                                                .name("Bangkok")
-                                                .code("PG")
-                                                .country("Thailand")
-                                                .build());
-
-                cityRepository.save(
-                                City.builder()
-                                                .name("Male")
-                                                .code("MLE")
-                                                .country("Maldives")
-                                                .build());
+                cityRepository.save(City.builder().name("Hyderabad").code("HYD").country("India").build());
+                cityRepository.save(City.builder().name("Delhi").code("DEL").country("India").build());
+                cityRepository.save(City.builder().name("Kerala").code("KD").country("India").build());
+                cityRepository.save(City.builder().name("Kashmir").code("SXR").country("India").build());
+                cityRepository.save(City.builder().name("Andaman").code("IXZ").country("India").build());
+                cityRepository.save(City.builder().name("Mumbai").code("BOM").country("India").build());
+                cityRepository.save(City.builder().name("Dubai").code("DXB").country("UAE").build());
+                cityRepository.save(City.builder().name("Kuala Lumpur").code("KUL").country("Malaysia").build());
+                cityRepository.save(City.builder().name("Vietnam").code("VN").country("Vietnam").build());
+                cityRepository.save(City.builder().name("Singapore").code("SIN").country("Singapore").build());
+                cityRepository.save(City.builder().name("Bali").code("DPS").country("Indonesia").build());
+                cityRepository.save(City.builder().name("Bangkok").code("PG").country("Thailand").build());
+                cityRepository.save(City.builder().name("Male").code("MLE").country("Maldives").build());
 
                 System.out.println("Cities seeded successfully ✅");
         }
 
+        /*
+         * ==========================
+         * SEED TRAVEL PACKAGES
+         * ==========================
+         */
         private void seedPackages() {
 
                 List<City> cities = cityRepository.findAll();
@@ -304,31 +239,22 @@ public class DataInitializer implements CommandLineRunner {
 
                                 boolean isDomestic = from.getCountry().equalsIgnoreCase(to.getCountry());
 
-                                // ----------------------
-                                // PRICE LOGIC
-                                // ----------------------
                                 double basePrice;
 
                                 if (isDomestic) {
-                                        basePrice = 25000 + (Math.random() * 20000); // 25k – 45k
+                                        basePrice = 25000 + (Math.random() * 20000);
                                 } else {
-                                        basePrice = 65000 + (Math.random() * 60000); // 65k – 125k
+                                        basePrice = 65000 + (Math.random() * 60000);
                                 }
 
-                                // ----------------------
-                                // NIGHTS LOGIC
-                                // ----------------------
                                 int nights;
 
                                 if (isDomestic) {
-                                        nights = 2 + (int) (Math.random() * 2); // 2–3 nights
+                                        nights = 2 + (int) (Math.random() * 2);
                                 } else {
-                                        nights = 4 + (int) (Math.random() * 3); // 4–6 nights
+                                        nights = 4 + (int) (Math.random() * 3);
                                 }
 
-                                // ----------------------
-                                // AUTO LINK ATTRACTIONS
-                                // ----------------------
                                 List<Attraction> attractions = attractionRepository
                                                 .findByLocationIgnoreCase(to.getName());
 
@@ -336,7 +262,8 @@ public class DataInitializer implements CommandLineRunner {
                                                 TravelPackage.builder()
                                                                 .fromCity(from)
                                                                 .toCity(to)
-                                                                .departureDate(LocalDate.now().plusDays((int)(Math.random() * 30)))
+                                                                .departureDate(LocalDate.now()
+                                                                                .plusDays((int) (Math.random() * 30)))
                                                                 .totalDays(nights)
                                                                 .price(basePrice)
                                                                 .totalRooms(10)
@@ -347,5 +274,64 @@ public class DataInitializer implements CommandLineRunner {
                 }
 
                 System.out.println("✅ Smart packages seeded successfully");
+        }
+
+        /*
+         * ==========================
+         * SEED ATTRACTION PACKAGES
+         * ==========================
+         */
+        private void seedAttractionPackages() {
+
+                List<Attraction> dubai = attractionRepository.findByLocationIgnoreCase("Dubai");
+                List<Attraction> india = attractionRepository.findByLocationIgnoreCase("India");
+                List<Attraction> singapore = attractionRepository.findByLocationIgnoreCase("Singapore");
+                List<Attraction> bangkok = attractionRepository.findByLocationIgnoreCase("Bangkok");
+
+                attractionPackageRepository.save(
+                                AttractionPackage.builder()
+                                                .title("Dubai Luxury Experience")
+                                                .location("Dubai")
+                                                .nights(5)
+                                                .price(120000)
+                                                .rating(4.8)
+                                                .imageUrl("/images/dubai-package.jpg")
+                                                .overview("Explore Dubai with Burj Khalifa and Museum of the Future.")
+                                                .build());
+
+                attractionPackageRepository.save(
+                                AttractionPackage.builder()
+                                                .title("India Heritage Tour")
+                                                .location("India")
+                                                .nights(4)
+                                                .price(55000)
+                                                .rating(4.7)
+                                                .imageUrl("/images/india-package.jpg")
+                                                .overview("Discover Charminar and Indian heritage.")
+                                                .build());
+
+                attractionPackageRepository.save(
+                                AttractionPackage.builder()
+                                                .title("Singapore Discovery Trip")
+                                                .location("Singapore")
+                                                .nights(4)
+                                                .price(98000)
+                                                .rating(4.7)
+                                                .imageUrl("/images/singapore-package.jpg")
+                                                .overview("Experience Singapore skyline and Marina Bay.")
+                                                .build());
+
+                attractionPackageRepository.save(
+                                AttractionPackage.builder()
+                                                .title("Bangkok Cultural Journey")
+                                                .location("Bangkok")
+                                                .nights(4)
+                                                .price(87000)
+                                                .rating(4.6)
+                                                .imageUrl("/images/bangkok-package.jpg")
+                                                .overview("Discover temples and Thai culture.")
+                                                .build());
+
+                System.out.println("✅ Attraction packages seeded successfully");
         }
 }
