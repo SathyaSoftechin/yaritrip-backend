@@ -1,22 +1,33 @@
 package com.yaritrip.backend.dto;
 
-import lombok.Builder;
-import lombok.Data;
+import lombok.*;
 
 import java.util.List;
 import java.util.UUID;
 
 @Data
 @Builder
+@AllArgsConstructor
+@NoArgsConstructor
 public class PackageResponse {
 
     private UUID id;
     private String title;
     private String location;
     private Integer nights;
-    private Double price;
     private Double rating;
+    private Double price;
+    private String optionTitle;
+    private String hotelType;
+    private boolean flightIncluded;
+    private UUID originalPackageId;
+    private List<String> itinerary;
+    private List<String> features;
+    private List<String> highlights;
+    private int optionsCount;
+    private UUID optionId;
     private String image;
     private List<String> images;
     private String overview;
+    private List<PackageOptionDTO> options;
 }

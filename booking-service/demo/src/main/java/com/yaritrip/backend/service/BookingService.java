@@ -22,10 +22,10 @@ public class BookingService {
     private final BookingRepository bookingRepository;
     private final UserRepository userRepository;
 
-    // 🔥 NEW SERVICES
     private final WalletService walletService;
     private final NotificationService notificationService;
 
+    // CREATE BOOKING
     public Booking createBooking(BookingRequest request, String email) {
 
         User user = userRepository.findByEmail(email)
@@ -35,7 +35,7 @@ public class BookingService {
                 .packageId(request.getPackageId())
                 .totalAmount(request.getTotalAmount())
                 .status("CREATED")
-                .user(user) // 🔥 LINK USER
+                .user(user)
                 .build();
 
         List<TravellerDetails> travellers = request.getTravellers()
@@ -54,12 +54,10 @@ public class BookingService {
 
         booking.setTravellers(travellers);
 
-        Booking savedBooking = bookingRepository.save(booking);
-
-        return savedBooking;
+        return bookingRepository.save(booking);
     }
 
-    // 🔥 CONFIRM BOOKING (IMPORTANT STEP)
+    // CONFIRM BOOKING
     public Booking confirmBooking(UUID bookingId, String email) {
 
         Booking booking = bookingRepository.findById(bookingId)
@@ -71,25 +69,25 @@ public class BookingService {
 
         Booking updated = bookingRepository.save(booking);
 
-        // WALLET REWARD
         walletService.rewardBooking(email);
-
-        // NOTIFICATION
         notificationService.sendBookingConfirmation(email, booking.getId().toString());
 
         return updated;
     }
 
-    public Booking getBookingById(String id) {
-        return bookingRepository.findById(UUID.fromString(id))
+    // GET BOOKING (FIXED)
+    public Booking getBookingById(UUID id) {
+
+        return bookingRepository.findById(id)
                 .orElseThrow(() -> new ResponseStatusException(
                         HttpStatus.NOT_FOUND,
                         "Booking not found"));
     }
 
-    public Booking updateTravellers(String id, BookingRequest request) {
+    // UPDATE TRAVELLERS (FIXED UUID)
+    public Booking updateTravellers(UUID id, BookingRequest request) {
 
-        Booking booking = bookingRepository.findById(UUID.fromString(id))
+        Booking booking = bookingRepository.findById(id)
                 .orElseThrow(() -> new ResponseStatusException(
                         HttpStatus.NOT_FOUND,
                         "Booking not found"));

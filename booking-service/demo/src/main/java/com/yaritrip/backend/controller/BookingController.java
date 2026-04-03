@@ -22,21 +22,15 @@ import java.util.UUID;
 @RestController
 @RequestMapping("/api/bookings")
 @RequiredArgsConstructor
-@CrossOrigin(
-        origins = {
-                "http://localhost:5173",
-                "http://192.168.1.20:5173"
-        },
-        allowCredentials = "true"
-)
+@CrossOrigin(origins = {
+        "http://localhost:5173",
+        "http://192.168.1.20:5173"
+}, allowCredentials = "true")
 public class BookingController {
 
     private final BookingService service;
     private final TravelPackageRepository travelPackageRepository;
 
-    // ===============================
-    // 🔐 HELPER METHOD (SECURE AUTH)
-    // ===============================
     private String getAuthenticatedEmail(Authentication authentication) {
         if (authentication == null || authentication.getName() == null) {
             log.error("Unauthorized access attempt to booking API");
@@ -45,9 +39,7 @@ public class BookingController {
         return authentication.getName();
     }
 
-    // ===============================
     // ✅ CREATE BOOKING
-    // ===============================
     @PostMapping
     public ResponseEntity<?> createBooking(
             @RequestBody BookingRequest request,
@@ -62,37 +54,49 @@ public class BookingController {
         return ResponseEntity.ok(booking);
     }
 
-    // ===============================
-    // ✅ GET BOOKING + PACKAGE
-    // ===============================
+    // ✅ GET BOOKING (FIXED PROPERLY)
     @GetMapping("/{id}")
-    public ResponseEntity<?> getBooking(@PathVariable String id) {
+    public ResponseEntity<?> getBooking(@PathVariable UUID id) {
 
         Booking booking = service.getBookingById(id);
 
-        TravelPackage pkg = null;
-
-        if (booking.getPackageId() != null) {
-            pkg = travelPackageRepository
-                    .findById(booking.getPackageId())
-                    .orElse(null);
-        }
-
-        log.info("Fetched booking: {}", booking.getId());
-
         Map<String, Object> response = new HashMap<>();
-        response.put("booking", booking);
-        response.put("package", pkg);
+
+        response.put("id", booking.getId());
+        response.put("status", booking.getStatus());
+        response.put("totalAmount", booking.getTotalAmount());
+
+        // USER
+        Map<String, Object> user = new HashMap<>();
+        user.put("id", booking.getUser().getId());
+        user.put("name", booking.getUser().getName());
+        user.put("email", booking.getUser().getEmail());
+
+        response.put("user", user);
+
+        // ✅ FETCH PACKAGE USING packageId
+        TravelPackage pkg = travelPackageRepository
+                .findById(booking.getPackageId())
+                .orElse(null);
+
+        if (pkg != null) {
+            Map<String, Object> pkgData = new HashMap<>();
+            pkgData.put("id", pkg.getId());
+            pkgData.put("fromCity", pkg.getFromCity().getName());
+            pkgData.put("toCity", pkg.getToCity().getName());
+            pkgData.put("totalDays", pkg.getTotalDays());
+            pkgData.put("rating", pkg.getRating());
+
+            response.put("package", pkgData);
+        }
 
         return ResponseEntity.ok(response);
     }
 
-    // ===============================
     // ✅ UPDATE TRAVELLERS
-    // ===============================
     @PutMapping("/{id}/travellers")
     public ResponseEntity<?> updateTravellers(
-            @PathVariable String id,
+            @PathVariable UUID id,
             @RequestBody BookingRequest request,
             Authentication authentication) {
 
@@ -105,23 +109,47 @@ public class BookingController {
         return ResponseEntity.ok(updated);
     }
 
-    // ===============================
-    // ✅ CONFIRM BOOKING
-    // ===============================
+    // ✅ CONFIRM BOOKING (FIXED UUID)
     @PostMapping("/{id}/confirm")
     public ResponseEntity<?> confirmBooking(
-            @PathVariable String id,
+            @PathVariable UUID id,
             Authentication authentication) {
 
         String email = getAuthenticatedEmail(authentication);
 
         log.info("Confirming booking: {} by user: {}", id, email);
 
-        Booking booking = service.confirmBooking(
-                UUID.fromString(id),
-                email
-        );
+        Booking booking = service.confirmBooking(id, email);
 
-        return ResponseEntity.ok(booking);
+        Map<String, Object> response = new HashMap<>();
+
+        response.put("id", booking.getId());
+        response.put("status", booking.getStatus());
+        response.put("totalAmount", booking.getTotalAmount());
+
+        Map<String, Object> user = new HashMap<>();
+        user.put("id", booking.getUser().getId());
+        user.put("name", booking.getUser().getName());
+        user.put("email", booking.getUser().getEmail());
+
+        response.put("user", user);
+
+        // ✅ FETCH PACKAGE AGAIN
+        TravelPackage pkg = travelPackageRepository
+                .findById(booking.getPackageId())
+                .orElse(null);
+
+        if (pkg != null) {
+            Map<String, Object> pkgData = new HashMap<>();
+            pkgData.put("id", pkg.getId());
+            pkgData.put("fromCity", pkg.getFromCity().getName());
+            pkgData.put("toCity", pkg.getToCity().getName());
+            pkgData.put("totalDays", pkg.getTotalDays());
+            pkgData.put("rating", pkg.getRating());
+
+            response.put("package", pkgData);
+        }
+
+        return ResponseEntity.ok(response);
     }
 }

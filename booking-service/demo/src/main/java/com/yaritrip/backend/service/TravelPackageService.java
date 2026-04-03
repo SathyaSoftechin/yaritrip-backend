@@ -10,6 +10,8 @@ import com.yaritrip.backend.repository.TravelPackageRepository;
 import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
+import com.yaritrip.backend.model.PackageOption;
+import com.yaritrip.backend.repository.PackageOptionRepository;
 
 import java.time.LocalDate;
 import java.util.List;
@@ -21,16 +23,15 @@ public class TravelPackageService {
 
         private final TravelPackageRepository travelPackageRepository;
         private final CityRepository cityRepository;
-        private final ActivityRepository activityRepository; // ✅ ADD THIS
+        private final ActivityRepository activityRepository;
+        private final PackageOptionRepository packageOptionRepository;
 
-        @Transactional
         public TravelPackage create(
                         UUID fromCityId,
                         UUID destinationCityId,
                         LocalDate departureDate,
                         int totalRooms,
-                        int guestsPerRoom,
-                        Double price) {
+                        int guestsPerRoom) {
 
                 City fromCity = cityRepository.findById(fromCityId)
                                 .orElseThrow(() -> new RuntimeException("From city not found"));
@@ -44,23 +45,21 @@ public class TravelPackageService {
                                 .departureDate(departureDate)
                                 .totalRooms(totalRooms)
                                 .guestsPerRoom(guestsPerRoom)
-                                .price(price)
                                 .build();
 
                 return travelPackageRepository.save(pkg);
         }
 
         @Transactional
-        public PriceResponse calculatePrice(UUID packageId, List<UUID> activityIds) {
+        public PriceResponse calculatePrice(UUID optionId, List<UUID> activityIds) {
 
-                TravelPackage pkg = travelPackageRepository.findById(packageId)
-                                .orElseThrow(() -> new RuntimeException("Package not found"));
+                PackageOption option = packageOptionRepository.findById(optionId)
+                                .orElseThrow(() -> new RuntimeException("Option not found"));
 
-                double basePrice = pkg.getPrice();
+                double basePrice = option.getPrice();
                 double activitiesTotal = 0.0;
 
                 if (activityIds != null && !activityIds.isEmpty()) {
-
                         List<Activity> activities = activityRepository.findAllById(activityIds);
 
                         activitiesTotal = activities.stream()
@@ -74,10 +73,16 @@ public class TravelPackageService {
         }
 
         @Transactional
+        public TravelPackage getPackageWithOptions(UUID id) {
+                return travelPackageRepository.findByIdWithOptions(id)
+                                .orElseThrow(() -> new RuntimeException("Package not found"));
+        }
+
+        @Transactional
         public List<TravelPackage> searchPackages(
                         String fromCode,
                         String toCode,
-                        String date,
+                        LocalDate selectedDate,
                         int rooms,
                         int guests) {
 
@@ -90,7 +95,7 @@ public class TravelPackageService {
                 return travelPackageRepository.searchPackages(
                                 fromCity.getId(),
                                 toCity.getId(),
-                                LocalDate.parse(date),
+                                selectedDate,
                                 rooms,
                                 guests);
         }

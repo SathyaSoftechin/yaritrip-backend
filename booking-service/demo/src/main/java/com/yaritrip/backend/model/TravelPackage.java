@@ -45,7 +45,7 @@ public class TravelPackage {
 
         @OneToMany(mappedBy = "travelPackage", cascade = CascadeType.ALL)
         @JsonManagedReference
-        @JsonIgnore   // ✅ ADD THIS LINE
+        @JsonIgnore // ✅ ADD THIS LINE
         private List<PackageImage> images;
 
         @OneToMany(mappedBy = "travelPackage", cascade = CascadeType.ALL)
@@ -66,9 +66,6 @@ public class TravelPackage {
 
         @Column(nullable = false)
         private int guestsPerRoom;
-
-        @Column(nullable = false)
-        private Double price;
 
         @Column(nullable = false)
         private Integer totalDays;
@@ -92,4 +89,7 @@ public class TravelPackage {
         @ManyToMany(fetch = FetchType.EAGER)
         @JoinTable(name = "package_attractions", joinColumns = @JoinColumn(name = "package_id"), inverseJoinColumns = @JoinColumn(name = "attraction_id"))
         private List<Attraction> attractions;
+
+        @OneToMany(mappedBy = "travelPackage", cascade = CascadeType.ALL, fetch = FetchType.LAZY)
+        private List<PackageOption> options;
 }
